@@ -24,6 +24,7 @@ dependencies {
     compileOnly("com.viaversion.mcstructs:dialog:+") { transitive = false }
     compileOnly "net.lenni0451:LambdaEvents:+"
     compileOnly "io.netty:netty-all:4.2.10.Final"
+    compileOnly "org.apache.logging.log4j:log4j-api:2.24.3"
 }
 
 jar {

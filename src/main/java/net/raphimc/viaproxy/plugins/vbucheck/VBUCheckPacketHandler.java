@@ -12,6 +12,8 @@ import com.viaversion.viaversion.libs.mcstructs.core.Identifier;
 import com.viaversion.viaversion.libs.mcstructs.dialog.ActionButton;
 import com.viaversion.viaversion.libs.mcstructs.dialog.AfterAction;
 import com.viaversion.viaversion.libs.mcstructs.dialog.action.CustomAllAction;
+import com.viaversion.viaversion.libs.mcstructs.dialog.action.StaticAction;
+import com.viaversion.viaversion.libs.mcstructs.text.events.click.ClickEvent;
 import com.viaversion.viaversion.libs.mcstructs.dialog.body.DialogBody;
 import com.viaversion.viaversion.libs.mcstructs.dialog.Input;
 import com.viaversion.viaversion.libs.mcstructs.dialog.body.PlainMessageBody;
@@ -27,15 +29,18 @@ import net.raphimc.viabedrock.protocol.storage.ChannelStorage;
 import net.raphimc.viaproxy.proxy.packethandler.PacketHandler;
 import net.raphimc.viaproxy.proxy.session.ProxyConnection;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Logger;
 
 public class VBUCheckPacketHandler extends PacketHandler {
 
-    private static final Logger LOGGER = Logger.getLogger("VBUCheck");
+    private static final Logger LOGGER = LogManager.getLogger("VBUCheck");
     private static final String VBU_CONFIRM_CHANNEL = "viabedrockutility:confirm";
     private static final int DIALOG_BUTTON_WIDTH = 200;
 
@@ -44,17 +49,20 @@ public class VBUCheckPacketHandler extends PacketHandler {
     private final String downloadUrl;
     private final String dialogTitle;
     private final String dialogCloseButton;
+    private final String dialogDownloadButton;
 
     private boolean checked = false;
 
     public VBUCheckPacketHandler(ProxyConnection proxyConnection, int delayMs, String message,
-                                 String downloadUrl, String dialogTitle, String dialogCloseButton) {
+                                 String downloadUrl, String dialogTitle, String dialogCloseButton,
+                                 String dialogDownloadButton) {
         super(proxyConnection);
         this.delayMs = delayMs;
         this.message = message;
         this.downloadUrl = downloadUrl;
         this.dialogTitle = dialogTitle;
         this.dialogCloseButton = dialogCloseButton;
+        this.dialogDownloadButton = dialogDownloadButton;
     }
 
     @Override
@@ -89,11 +97,10 @@ public class VBUCheckPacketHandler extends PacketHandler {
         try {
             if (proxyConnection.getClientVersion().newerThanOrEqualTo(ProtocolVersion.v1_21_6)) {
                 sendDialog(userConnection);
-            } else {
-                sendChatMessage(userConnection);
             }
+            sendChatMessage(userConnection);
         } catch (Exception e) {
-            LOGGER.warning("Failed to send VBU notification: " + e.getMessage());
+            LOGGER.error("Failed to send VBU notification", e);
         }
     }
 
@@ -108,6 +115,15 @@ public class VBUCheckPacketHandler extends PacketHandler {
             body.add(new PlainMessageBody(new StringComponent(line)));
         }
 
+        final ActionButton downloadButton = new ActionButton(
+                new StringComponent(dialogDownloadButton),
+                DIALOG_BUTTON_WIDTH,
+                new StaticAction(ClickEvent.openUrl(new URI(downloadUrl))));
+
+        final List<ActionButton> actions = new ArrayList<>();
+        actions.add(downloadButton);
+        actions.add(closeButton);
+
         final MultiActionDialog dialog = new MultiActionDialog(
                 new StringComponent(dialogTitle),
                 true,   // closeAfterAction
@@ -115,7 +131,7 @@ public class VBUCheckPacketHandler extends PacketHandler {
                 AfterAction.CLOSE,
                 body,                                   // body
                 new ArrayList<Input>(),                  // inputs
-                new ArrayList<ActionButton>(),           // actions
+                actions,                                 // actions
                 closeButton,                             // exitButton
                 1                                        // columns
         );

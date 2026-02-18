@@ -1,22 +1,24 @@
 package net.raphimc.viaproxy.plugins.vbucheck;
 
 import net.lenni0451.lambdaevents.EventHandler;
-import net.raphimc.viabedrock.api.BedrockProtocolVersion;
 import net.raphimc.viaproxy.ViaProxy;
 import net.raphimc.viaproxy.plugins.ViaProxyPlugin;
 import net.raphimc.viaproxy.plugins.events.ConnectEvent;
+import net.raphimc.viaproxy.proxy.session.BedrockProxyConnection;
 import net.raphimc.viaproxy.proxy.session.ProxyConnection;
 import org.yaml.snakeyaml.Yaml;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.logging.Logger;
 
 public class VBUCheckPlugin extends ViaProxyPlugin {
 
-    private static final Logger LOGGER = Logger.getLogger("VBUCheck");
+    private static final Logger LOGGER = LogManager.getLogger("VBUCheck");
 
     private boolean enabled = true;
     private int delayMs = 1000;
@@ -24,6 +26,7 @@ public class VBUCheckPlugin extends ViaProxyPlugin {
     private String downloadUrl = "https://github.com/RaphiMC/ViaBedrockUtility/releases";
     private String dialogTitle = "提示";
     private String dialogCloseButton = "我知道了";
+    private String dialogDownloadButton = "前往下载";
 
     @Override
     public void onEnable() {
@@ -38,12 +41,12 @@ public class VBUCheckPlugin extends ViaProxyPlugin {
 
         final ProxyConnection proxyConnection = event.getProxyConnection();
 
-        if (!proxyConnection.getServerVersion().equals(BedrockProtocolVersion.bedrockLatest)) {
+        if (!(proxyConnection instanceof BedrockProxyConnection)) {
             return;
         }
 
         proxyConnection.getPacketHandlers().add(new VBUCheckPacketHandler(
-                proxyConnection, delayMs, message, downloadUrl, dialogTitle, dialogCloseButton));
+                proxyConnection, delayMs, message, downloadUrl, dialogTitle, dialogCloseButton, dialogDownloadButton));
     }
 
     private void loadConfig() {
@@ -77,8 +80,11 @@ public class VBUCheckPlugin extends ViaProxyPlugin {
             if (config.containsKey("dialog-close-button")) {
                 dialogCloseButton = (String) config.get("dialog-close-button");
             }
+            if (config.containsKey("dialog-download-button")) {
+                dialogDownloadButton = (String) config.get("dialog-download-button");
+            }
         } catch (Exception e) {
-            LOGGER.warning("Failed to load config, using defaults: " + e.getMessage());
+            LOGGER.warn("Failed to load config, using defaults: " + e.getMessage());
         }
     }
 
@@ -105,9 +111,11 @@ public class VBUCheckPlugin extends ViaProxyPlugin {
             writer.write("# Dialog 标题（仅 1.21.6+）\n");
             writer.write("dialog-title: \"" + escapeYaml(dialogTitle) + "\"\n\n");
             writer.write("# Dialog 关闭按钮文案（仅 1.21.6+）\n");
-            writer.write("dialog-close-button: \"" + escapeYaml(dialogCloseButton) + "\"\n");
+            writer.write("dialog-close-button: \"" + escapeYaml(dialogCloseButton) + "\"\n\n");
+            writer.write("# Dialog 下载按钮文案（仅 1.21.6+）\n");
+            writer.write("dialog-download-button: \"" + escapeYaml(dialogDownloadButton) + "\"\n");
         } catch (Exception e) {
-            LOGGER.warning("Failed to save default config: " + e.getMessage());
+            LOGGER.warn("Failed to save default config: " + e.getMessage());
         }
     }
 
