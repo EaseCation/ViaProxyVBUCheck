@@ -1,0 +1,31 @@
+plugins {
+    id 'java'
+}
+
+group = 'net.raphimc.viaproxy.plugins'
+version = '1.0.0'
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+    maven { url = "https://repo.viaversion.com" }
+    maven { url = "https://maven.lenni0451.net/everything" }
+}
+
+dependencies {
+    compileOnly("net.raphimc:ViaProxy:+") { transitive = false }
+    compileOnly("net.raphimc:ViaBedrock:+") { transitive = false }
+    compileOnly "com.viaversion:viaversion-common:+"
+    compileOnly("com.viaversion.mcstructs:dialog:+") { transitive = false }
+    compileOnly "net.lenni0451:LambdaEvents:+"
+    compileOnly "io.netty:netty-all:4.2.10.Final"
+}
+
+jar {
+    archiveBaseName = "VBUCheck"
+}

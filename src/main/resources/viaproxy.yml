@@ -1,0 +1,4 @@
+name: VBUCheck
+author: fangyizhou
+version: 1.0.0
+main: net.raphimc.viaproxy.plugins.vbucheck.VBUCheckPlugin
