@@ -4,6 +4,7 @@ import com.viaversion.nbt.tag.ByteTag;
 import com.viaversion.nbt.tag.CompoundTag;
 import com.viaversion.nbt.tag.ListTag;
 import com.viaversion.viaversion.api.connection.UserConnection;
+import com.viaversion.viaversion.api.minecraft.Holder;
 import com.viaversion.viaversion.api.protocol.packet.PacketWrapper;
 import com.viaversion.viaversion.api.protocol.version.ProtocolVersion;
 import com.viaversion.viaversion.api.type.Types;
@@ -20,7 +21,7 @@ import com.viaversion.viaversion.libs.mcstructs.dialog.body.PlainMessageBody;
 import com.viaversion.viaversion.libs.mcstructs.dialog.impl.MultiActionDialog;
 import com.viaversion.viaversion.libs.mcstructs.dialog.serializer.DialogSerializer;
 import com.viaversion.viaversion.libs.mcstructs.text.components.StringComponent;
-import com.viaversion.viaversion.protocols.v1_21_9to1_21_11.packet.ClientboundPackets1_21_11;
+import com.viaversion.viaversion.protocols.v1_21_11to26_1.packet.ClientboundPackets26_1;
 import io.netty.channel.ChannelFutureListener;
 import net.raphimc.netminecraft.constants.ConnectionState;
 import net.raphimc.netminecraft.packet.Packet;
@@ -136,10 +137,10 @@ public class VBUCheckPacketHandler extends PacketHandler {
                 1                                        // columns
         );
 
-        final PacketWrapper showDialog = PacketWrapper.create(ClientboundPackets1_21_11.SHOW_DIALOG, userConnection);
-        showDialog.write(Types.VAR_INT, 0); // registry id
-        showDialog.write(Types.TAG, DialogSerializer.V1_21_6.getDirectCodec()
-                .serialize(NbtConverter_v1_21_5.INSTANCE, dialog).get());
+        final PacketWrapper showDialog = PacketWrapper.create(ClientboundPackets26_1.SHOW_DIALOG, userConnection);
+        final CompoundTag dialogTag = (CompoundTag) DialogSerializer.V1_21_6.getDirectCodec()
+                .serialize(NbtConverter_v1_21_5.INSTANCE, dialog).get();
+        showDialog.write(Types.TRUSTED_COMPOUND_TAG_HOLDER, Holder.of(dialogTag)); // dialog data
         showDialog.send(BedrockProtocol.class);
     }
 
@@ -182,7 +183,7 @@ public class VBUCheckPacketHandler extends PacketHandler {
         extra.add(link);
         root.put("extra", extra);
 
-        final PacketWrapper systemChat = PacketWrapper.create(ClientboundPackets1_21_11.SYSTEM_CHAT, userConnection);
+        final PacketWrapper systemChat = PacketWrapper.create(ClientboundPackets26_1.SYSTEM_CHAT, userConnection);
         systemChat.write(Types.TAG, root);       // message
         systemChat.write(Types.BOOLEAN, false);   // overlay
         systemChat.send(BedrockProtocol.class);
