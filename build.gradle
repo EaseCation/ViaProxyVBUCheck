@@ -6,15 +6,27 @@ group = 'net.raphimc.viaproxy.plugins'
 version = '1.0.0'
 
 repositories {
-    mavenLocal()
+    // EaseCation private repository (Aliyun Yunxiao Packages), only for net.easecation.* coordinates.
+    // Credentials: yunxiaoMavenUsername / yunxiaoMavenPassword in ~/.gradle/gradle.properties.
+    exclusiveContent {
+        forRepository {
+            maven {
+                name = "yunxiaoMaven"
+                url = "https://easecation-cn-hangzhou.devops.aliyuncs.com/packages/api/protocol/maven/14075-release-h64s7e"
+                credentials(PasswordCredentials)
+            }
+        }
+        filter { includeGroupByRegex "net\\.easecation(\\..*)?" }
+    }
     mavenCentral()
     maven { url = "https://repo.viaversion.com" }
 }
 
 dependencies {
-    compileOnly("net.raphimc:ViaProxy:+") { transitive = false }
-    compileOnly("net.raphimc:ViaBedrock:+") { transitive = false }
-    compileOnly "com.viaversion:viaversion-common:+"
+    // EaseCation ViaProxy / ViaBedrock / ViaVersion forks (were dynamic "+" versions resolved from mavenLocal)
+    compileOnly("net.easecation.fork.raphimc:ViaProxy:3.4.12-ec.1") { transitive = false }
+    compileOnly("net.easecation.fork.raphimc:ViaBedrock:0.0.28-ec.1") { transitive = false }
+    compileOnly "net.easecation.fork.viaversion:viaversion-common:5.9.2-ec.1"
     compileOnly("com.viaversion.mcstructs:dialog:+") { transitive = false }
     compileOnly "net.lenni0451:LambdaEvents:2.4.2"
     compileOnly "io.netty:netty-all:4.2.10.Final"
